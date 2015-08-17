@@ -1,0 +1,48 @@
+# Maintainer: Sebastien Bariteau <numkem@gmail.com>
+pkgname=wavemaker
+pkgver=6.7.0
+pkgrel=1
+pkgdesc="A rapid application development environment for building, maintaining and modernizing business-critical Web 2.0 applications."
+arch=('i686' 'x86_64')
+license=('Apache')
+url="http://www.wavemaker.com/"
+depends=('java-runtime')
+optdepends=('lib32-nss')
+install='wavemaker.install'
+
+if [ "$CARCH" = "i686" ]; then
+    _arch='i386'
+    md5sums=('c73614f0ef2e7519e724e0bcd40e8099'
+             'c2e2270c730fa8efd06894c66d1e8b63')
+elif [ "$CARCH" = "x86_64" ]; then
+    _arch='amd64'
+    md5sums=('9ec60b6fa8a63f0ac4ce1f7683b43ebd'
+	     'c2e2270c730fa8efd06894c66d1e8b63')
+fi
+
+source=(http://wminstallers.s3.amazonaws.com/${pkgver}%20RELEASE/wavemaker_${pkgver}.RELEASE_${_arch}.deb
+	'wavemaker.install')
+
+build() {
+  cd $srcdir/
+  
+  msg2 "Extrating debian package"
+  tar zxf data.tar.gz -C .
+  mv ./opt/wavemaker-${pkgver}.RELEASE ./opt/wavemaker/
+}
+
+package() {
+  cd $srcdir/
+  
+  msg2 "Installing"
+  mv ./opt ${pkgdir}/
+
+  msg2 "Fixing Paths"
+  sed -i 's|WAVEMAKER_PATH=.*$|WAVEMAKER_PATH=/opt/wavemaker|' ${pkgdir}/opt/wavemaker/bin/wavemaker.sh
+  sed -i "s|-${pkgver}\.RELEASE||g" ${pkgdir}/opt/wavemaker/README
+  
+  # Install license
+  install -d ${pkgdir}/usr/share/licenses/wavemaker/
+  ln -s /opt/wavemaker/LICENSE ${pkgdir}/usr/share/licenses/wavemaker/LICENSE
+}
+
